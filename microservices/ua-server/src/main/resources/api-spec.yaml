@@ -1,0 +1,247 @@
+swagger: "2.0"
+info:
+  description: "An API to manage user accounts using JWT for authentification and authorisation!"
+  version: "1.0.0"
+  title: "user account manager"
+  contact:
+    email: "iando.rafidimalalathevoz@heig-vd.ch"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost"
+basePath: "/api"
+tags:
+  - name: "users"
+    description: "Operations about user"
+  - name: "credential"
+    description: "credential information provided by the user"
+schemes:
+  - "https"
+  - "http"
+paths:
+  /users:
+    post:
+      tags:
+        - "users"
+      summary: "Create user"
+      description: "This can only be done by the logged in user and its userAdmin is enabled."
+      operationId: "createUser"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "Created user object based on the User definition"
+          required: true
+          schema:
+            $ref: "#/definitions/User"
+      responses:
+        201:
+          description: "user created"
+        401:
+          description: "Unauthorized: you dont have the ability to create a user"
+        405:
+          description: "Invalid input"
+        default:
+          description: "successful operation"
+    get:
+      tags:
+        - "users"
+      summary: "Retrieve the list of users available on the database"
+      description: "get the all the users"
+      operationId: "getAllUsers"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "the user token"
+          required: true
+          schema:
+            $ref: '#/definitions/Token'
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/UserDTO'
+        403:
+          description: "Unauthorized: you dont have the ability to retrieve the list of  the user"
+        default:
+          description: "successful operation"
+  /users/{userEmail}:
+    get:
+      tags:
+        - "users"
+      summary: "Find user account by email"
+      description: "Returns a single user"
+      operationId: "getUserById"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "userEmail"
+          in: "path"
+          description: "The email of the User to return"
+          required: true
+          type: 'string'
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/UserDTO"
+        400:
+          description: "Invalid user ID supplied"
+        404:
+          description: "User not found"
+    patch:
+      tags:
+        - "users"
+      summary: "Updated user password"
+      description: "This can only be done by the logged in user. The user can change its password"
+      operationId: "updateUser"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "userEmail"
+          in: "path"
+          description: "The email of the User"
+          required: true
+          type: 'string'
+        - in: "body"
+          name: "body"
+          description: "Updated user account"
+          required: true
+          schema:
+            $ref: "#/definitions/AuthDTO"
+      responses:
+        202:
+          description: "User updated"
+        400:
+          description: "Invalid user supplied"
+        403:
+          description: "Forbiden action"
+        404:
+          description: "User not found"
+    delete:
+      tags:
+        - "users"
+      summary: "delete the user account "
+      description: "This can only be done by the logged in user. The user admin can delete another user account"
+      operationId: "deleteUserById"
+      consumes:
+        - "application/json"
+      parameters:
+        - name: "userEmail"
+          in: "path"
+          description: "The email of the User"
+          required: true
+          type: 'string'
+      responses:
+        204:
+          description: "Successfull deleted user"
+        400:
+          description: "Invalid user supplied"
+        403:
+          description: "Forbiden action"
+        404:
+          description: "User not found"
+  /authenticate:
+    post:
+      tags:
+        - "users"
+        - "credential"
+      summary: "User logs into the system"
+      description: ""
+      operationId: "loginUser"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "AuthDTO"
+          description: "user credential to log in the system"
+          required: true
+          schema:
+            $ref: "#/definitions/AuthDTO"
+      responses:
+        200:
+          description: "successful operation"
+          headers:
+            X-Rate-Limit:
+              type: "integer"
+              format: "int32"
+              description: "calls per hour allowed by the user"
+            X-Expires-After:
+              type: "string"
+              format: "date-time"
+              description: "date in UTC when token expires"
+        400:
+          description: "Invalid supplied username/password "
+        '401':
+          description: "unauthorized"
+  /logout:
+    get:
+      tags:
+        - "users"
+      summary: "Logs out current logged in user session"
+      description: ""
+      operationId: "logoutUser"
+      produces:
+        - "application/json"
+      parameters: []
+      responses:
+        default:
+          description: "successful operation"
+
+
+
+definitions:
+  User:
+    type: "object"
+    properties:
+      email:
+        type: "string"
+        description: "primary key app requirement, unique and constant"
+      firstName:
+        type: "string"
+      lastName:
+        type: "string"
+      isAdmin:
+        type: boolean
+        description: "User Status define the ability to manage user account on the database"
+      isBlocked:
+        type: "boolean"
+        default: false
+        description: "User validation is done by the admin"
+  UserDTO:
+    type: "object"
+    description: "User information pass through"
+    properties:
+      email:
+        type: "string"
+      firstname:
+        type: "string"
+      lastname:
+        type: "string"
+  AuthDTO:
+    type: "object"
+    description: "required information to perform the authentification"
+    properties:
+      email:
+        type: "string"
+      password:
+        type: "string"
+        format: "password"
+  Token:
+    description: "token to manage the security"
+    type: "object"
+    properties:
+      token:
+        type: "string"
+
