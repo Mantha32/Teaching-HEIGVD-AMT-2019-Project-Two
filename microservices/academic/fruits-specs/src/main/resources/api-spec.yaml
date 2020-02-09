@@ -1,0 +1,189 @@
+swagger: "2.0"
+info:
+  description: "An API to manage academic enrollment using JWT!"
+  version: "1.0.0"
+  title: "academic manager"
+  contact:
+    email: "iando.rafidimalalathevoz@heig-vd.ch"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "localhost:8081"
+basePath: "/api"
+schemes:
+  - "https"
+  - "http"
+
+parameters:
+  idEnrollement:
+    in: path
+    name: idEnrollement
+    type: integer
+    required: true
+  token:
+    in: header
+    name: Authorization
+    type: string
+    required: true
+paths:
+  /enrollements:
+    parameters:
+      - $ref: '#/parameters/token'
+    get:
+      description: get the list of enrollements from the user
+      operationId: getEnrollements
+      produces:
+        - application/json
+      parameters:
+        - in: query
+          name: offset
+          type: integer
+          default: 0
+          required: false
+        - in: query
+          name: limit
+          type: integer
+          default: 10
+          required: false
+      responses:
+        '200':
+          description: success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/EnrollmentDTO'
+
+    post:
+      description: create a Enrollment
+      operationId: createEnrollment
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: enrollment
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Enrollment'
+      responses:
+        '201':
+          description: Created
+          schema:
+            $ref: '#/definitions/EnrollmentDTO'
+        '401':
+          description: unauthorized
+
+  /enrollements/{idEnrollement}:
+    parameters:
+      - $ref: '#/parameters/token'
+      - $ref: '#/parameters/idEnrollement'
+    get:
+      description: get a enrollment by this id
+      operationId: getEnrollmentById
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/EnrollmentDTO'
+        '401':
+          description: unauthorized
+        '403':
+          description: Forbiden
+        '404':
+          description: Not found
+
+
+    delete:
+      description: delete a enrollment
+      operationId: deleteEnrollment
+      consumes:
+        - application/json
+      responses:
+        '204':
+          description: Deleted
+        '403':
+          description: Forbiden
+        '404':
+          description: Not found
+    patch:
+      description: update a enrollment
+      operationId: updateEnrollment
+      consumes:
+        - application/json
+      parameters:
+        - name: Enrollment
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/Enrollment'
+      responses:
+        '202':
+          description: Updated
+        '403':
+          description: Forbiden
+        '404':
+          description: Not found
+  /courses:
+    get:
+      description: get the list of all the courses
+      operationId: getCourses
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Course'
+  /salles:
+    get:
+      description: get the list of all the salle
+      operationId: getSalles
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: success
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/Salle'
+definitions:
+  Enrollment:
+    type: object
+    properties:
+      Salle:
+        $ref: '#/definitions/Salle'
+      course:
+        $ref: '#/definitions/Course'
+  EnrollmentDTO:
+    type: object
+    properties:
+      idEnrollement:
+        type: integer
+      User_email:
+        type: string
+      Salle:
+        $ref: '#/definitions/Salle'
+      course:
+        $ref: '#/definitions/Course'
+  Salle:
+    type: object
+    properties:
+      idSalle:
+        type: integer
+      name:
+        type: string
+  Course:
+    type: object
+    properties:
+      idCourse:
+        type: integer
+      name:
+        type: string
+
+
